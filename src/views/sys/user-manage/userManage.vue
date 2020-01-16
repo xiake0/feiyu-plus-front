@@ -637,6 +637,7 @@ export default {
       // 获取性别字典数据
       getDictDataByType("sex").then(res => {
         if (res.success) {
+          console.log(res.result);
           this.dictSex = res.result;
         }
       });
