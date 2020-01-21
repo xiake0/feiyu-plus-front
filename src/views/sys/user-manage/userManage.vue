@@ -17,9 +17,6 @@
                   style="width: 200px"
                 />
               </Form-item>
-              <Form-item label="部门" prop="department">
-                <department-choose @on-select="handleSelectDep" ref="dep"></department-choose>
-              </Form-item>
               <span v-if="drop">
                 <Form-item label="手机号" prop="mobile">
                   <Input
@@ -30,18 +27,18 @@
                     style="width: 200px"
                   />
                 </Form-item>
-                <Form-item label="邮箱" prop="email">
+                <Form-item label="地址" prop="address">
                   <Input
                     type="text"
-                    v-model="searchForm.email"
+                    v-model="searchForm.address"
                     clearable
-                    placeholder="请输入邮箱"
+                    placeholder="请输入地址"
                     style="width: 200px"
                   />
                 </Form-item>
-                <Form-item label="性别" prop="sex">
-                  <Select v-model="searchForm.sex" placeholder="请选择" clearable style="width: 200px">
-                    <Option v-for="(item, i) in dictSex" :key="i" :value="item.value">{{item.title}}</Option>
+                <Form-item label="性别" prop="gender">
+                  <Select v-model="searchForm.gender" placeholder="请选择" clearable style="width: 200px">
+                    <Option v-for="(item, i) in dictSex" :key="i" :value="item.name">{{item.value}}</Option>
                   </Select>
                 </Form-item>
                 <Form-item label="用户类型" prop="type">
@@ -55,15 +52,15 @@
                     <Option value="1">管理员</Option>
                   </Select>
                 </Form-item>
-                <Form-item label="用户状态" prop="status">
+                <Form-item label="用户状态" prop="enabled">
                   <Select
-                    v-model="searchForm.status"
+                    v-model="searchForm.enabled"
                     placeholder="请选择"
                     clearable
                     style="width: 200px"
                   >
                     <Option value="0">正常</Option>
-                    <Option value="-1">禁用</Option>
+                    <Option value="1">禁用</Option>
                   </Select>
                 </Form-item>
                 <Form-item label="创建时间">
@@ -154,22 +151,19 @@
         <FormItem label="密码" prop="password" v-if="modalType===0" :error="errorPass">
           <Input type="password" v-model="userForm.password" autocomplete="off"/>
         </FormItem>
-        <FormItem label="邮箱" prop="email">
-          <Input v-model="userForm.email"/>
+        <FormItem label="地址" prop="address">
+          <Input v-model="userForm.address"/>
         </FormItem>
         <FormItem label="手机号" prop="mobile">
           <Input v-model="userForm.mobile"/>
         </FormItem>
-        <FormItem label="性别" prop="sex">
-          <RadioGroup v-model="userForm.sex">
-            <Radio v-for="(item, i) in dictSex" :key="i" :label="Number(item.value)">{{item.title}}</Radio>
+        <FormItem label="性别" prop="gender">
+          <RadioGroup v-model="userForm.gender">
+            <Radio v-for="(item, i) in dictSex" :key="i" :label="Number(item.name)">{{item.value}}</Radio>
           </RadioGroup>
         </FormItem>
         <Form-item label="头像" prop="avatar">
           <upload-pic-input @on-change="handleUpload" width="285px" ref="upload"></upload-pic-input>
-        </Form-item>
-        <Form-item label="所属部门">
-          <department-tree-choose width="285px" @on-change="handleSelectDepTree" ref="depTree"></department-tree-choose>
         </Form-item>
         <FormItem label="用户类型" prop="type">
           <Select v-model="userForm.type" placeholder="请选择">
@@ -180,10 +174,8 @@
         <FormItem label="角色分配" prop="roles">
           <Select v-model="userForm.roles" multiple>
             <Option v-for="item in roleList" :value="item.id" :key="item.id" :label="item.name">
-              <!-- <div style="display:flex;flex-direction:column"> -->
               <span style="margin-right:10px;">{{ item.name }}</span>
               <span style="color:#ccc;">{{ item.description }}</span>
-              <!-- </div> -->
             </Option>
           </Select>
         </FormItem>
@@ -256,7 +248,6 @@ import {
   uploadFile,
   getDictDataByType
 } from "@/api/index";
-import expandRow from "./expand.vue";
 import departmentChoose from "@/views/my-components/xboot/department-choose";
 import departmentTreeChoose from "@/views/my-components/xboot/department-tree-choose";
 import uploadPicInput from "@/views/my-components/xboot/upload-pic-input";
@@ -270,7 +261,6 @@ export default {
   name: "user-manage",
   components: {
     circleLoading,
-    expandRow,
     departmentChoose,
     departmentTreeChoose,
     uploadPicInput
@@ -305,15 +295,14 @@ export default {
       selectList: [],
       searchForm: {
         username: "",
-        departmentId: "",
         mobile: "",
-        email: "",
-        sex: "",
+        address: "",
+        gender: "",
         type: "",
-        status: "",
+        enabled: "",
         pageNumber: 1,
         pageSize: 10,
-        sort: "createTime",
+        sort: "create_time",
         order: "desc",
         startDate: "",
         endDate: ""
@@ -325,12 +314,10 @@ export default {
       userForm: {
         username: "",
         mobile: "",
-        email: "",
-        sex: 1,
+        address: "",
+        gender: 1,
         type: 0,
         roles: [],
-        departmentId: "",
-        departmentTitle: ""
       },
       userRoles: [],
       roleList: [],
@@ -343,9 +330,8 @@ export default {
           { required: true, message: "手机号不能为空", trigger: "blur" },
           { validator: validateMobile, trigger: "blur" }
         ],
-        email: [
-          { required: true, message: "请输入邮箱地址" },
-          { type: "email", message: "邮箱格式不正确" }
+        address: [
+          { required: true, message: "请输入邮箱地址" }
         ]
       },
       submitLoading: false,
@@ -355,18 +341,6 @@ export default {
           width: 60,
           align: "center",
           fixed: "left"
-        },
-        {
-          type: "expand",
-          width: 50,
-          fixed: "left",
-          render: (h, params) => {
-            return h(expandRow, {
-              props: {
-                row: params.row
-              }
-            });
-          }
         },
         {
           type: "index",
@@ -395,17 +369,12 @@ export default {
           }
         },
         {
-          title: "所属部门",
-          key: "departmentTitle",
-          width: 120
-        },
-        {
           title: "手机",
           key: "mobile",
           width: 115,
           sortable: true,
           render: (h, params) => {
-            if (this.getStore("roles").includes("ROLE_ADMIN")) {
+            if (this.getStore("roles").includes("admin")) {
               return h("span", params.row.mobile);
             } else {
               return h("span", "您无权查看该数据");
@@ -413,21 +382,15 @@ export default {
           }
         },
         {
-          title: "邮箱",
-          key: "email",
-          width: 180,
-          sortable: true
-        },
-        {
           title: "性别",
-          key: "sex",
+          key: "gender",
           width: 70,
           align: "center",
           render: (h, params) => {
             let re = "";
             this.dictSex.forEach(e => {
-              if (e.value == params.row.sex) {
-                re = e.title;
+              if (e.name == params.row.gender) {
+                re = e.value;
               }
             });
             return h("div", re);
@@ -450,12 +413,12 @@ export default {
         },
         {
           title: "状态",
-          key: "status",
+          key: "enabled",
           align: "center",
           width: 140,
           render: (h, params) => {
             let re = "";
-            if (params.row.status === 0) {
+            if (params.row.enabled === true) {
               return h("div", [
                 h(
                   "Tag",
@@ -468,7 +431,7 @@ export default {
                   "正常启用"
                 )
               ]);
-            } else if (params.row.status === -1) {
+            } else if (params.row.enabled === false) {
               return h("div", [
                 h(
                   "Tag",
@@ -492,15 +455,7 @@ export default {
               label: "禁用",
               value: -1
             }
-          ],
-          filterMultiple: false,
-          filterMethod(value, row) {
-            if (value === 0) {
-              return row.status === 0;
-            } else if (value === -1) {
-              return row.status === -1;
-            }
-          }
+          ]
         },
         {
           title: "创建时间",
@@ -517,7 +472,7 @@ export default {
           fixed: "right",
           render: (h, params) => {
             let enableOrDisable = "";
-            if (params.row.status == 0) {
+            if (params.row.enabled == true) {
               enableOrDisable = h(
                 "Button",
                 {
@@ -635,18 +590,11 @@ export default {
     },
     getDictSexData() {
       // 获取性别字典数据
-      getDictDataByType("sex").then(res => {
+      getDictDataByType("gender").then(res => {
         if (res.success) {
-          console.log(res.result);
           this.dictSex = res.result;
         }
       });
-    },
-    handleSelectDepTree(v) {
-      this.userForm.departmentId = v[0];
-    },
-    handleSelectDep(v) {
-      this.searchForm.departmentId = v;
     },
     changePage(v) {
       this.searchForm.pageNumber = v;
@@ -670,14 +618,14 @@ export default {
       if (!this.searchForm.type) {
         this.searchForm.type = "";
       }
-      if (!this.searchForm.status) {
-        this.searchForm.status = "";
+      if (!this.searchForm.enabled) {
+        this.searchForm.enabled = "";
       }
       getUserListData(this.searchForm).then(res => {
         this.loading = false;
         if (res.success === true) {
-          this.data = res.result.content;
-          this.total = res.result.totalElements;
+          this.data = res.result.records;
+          this.total = res.result.total;
         }
       });
     },
@@ -844,7 +792,7 @@ export default {
           if (this.modalType === 0) {
             // 添加用户 避免编辑后传入id
             delete this.userForm.id;
-            delete this.userForm.status;
+            delete this.userForm.enabled;
             if (
               this.userForm.password == "" ||
               this.userForm.password == undefined

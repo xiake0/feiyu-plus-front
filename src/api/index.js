@@ -9,7 +9,7 @@ export const uploadFile = "/xboot/upload/file"
 // 验证码渲染图片接口
 export const drawCodeImage = "/xboot/common/captcha/draw/"
 // 获取菜单
-export const getMenuList = "admin/sys/menu/getMenuList"
+export const getMenuList = "/admin/sys/menu/getMenuList"
 // Websocket
 export const ws = "/xboot/ws"
 
@@ -122,7 +122,7 @@ export const getRelatedListData = (params) => {
 
 // 获取用户数据 多条件
 export const getUserListData = (params) => {
-    return getRequest('/user/getByCondition', params)
+    return getRequest('/sys/user/getByCondition', params)
 }
 // 通过用户名搜索
 export const searchUserByName = (username, params) => {
@@ -285,11 +285,9 @@ export const deleteData = (ids, params) => {
     return deleteRequest(`/dictData/delByIds/${ids}`, params)
 }
 // 通过类型获取字典数据
-export const getDictDataByType = (type, params) => {
+export const getDictDataByType = (code, params) => {
     return getRequest(`/common/dictionary/getDicByCode/${code}`, params)
 }
-
-
 
 // 分页获取日志数据
 export const getLogListData = (params) => {

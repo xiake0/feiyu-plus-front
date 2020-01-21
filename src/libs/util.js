@@ -9,7 +9,7 @@ let util = {
 };
 
 util.title = function (title) {
-    title = title || 'X-Boot 前后端分离开发平台';
+    title = title || 'Feiyu教研后台管理';
     window.document.title = title;
 };
 
@@ -330,7 +330,7 @@ util.initRouter = function (vm) {
     }
     let accessToken = window.localStorage.getItem('accessToken')
     // 加载菜单
-    axios.get(getMenuList).then(res => {
+    axios.get(getMenuList).then(res => {    
         let menuData = res.result;
         if (menuData === null || menuData === "" || menuData === undefined) {
             return;
@@ -360,9 +360,7 @@ util.initRouter = function (vm) {
 util.initRouterNode = function (routers, data) {
     for (var item of data) {
         let menu = Object.assign({}, item);
-        // menu.component = import(`@/views/${menu.component}.vue`);
         menu.component = lazyLoading(menu.component);
-
         if (item.children && item.children.length > 0) {
             menu.children = [];
             util.initRouterNode(menu.children, item.children);
@@ -371,7 +369,7 @@ util.initRouterNode = function (routers, data) {
         let meta = {};
         // 给页面添加权限、标题、第三方网页链接
         meta.permTypes = menu.permTypes ? menu.permTypes : null;
-        meta.title = menu.title ? menu.title + " - X-Boot前后端分离开发平台 By: Exrick" : null;
+        meta.title = menu.title ? menu.title + "Feiyu教研后台管理" : null;
         meta.url = menu.url ? menu.url : null;
         menu.meta = meta;
 
